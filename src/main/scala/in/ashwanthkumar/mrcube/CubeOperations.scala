@@ -1,22 +1,48 @@
 package in.ashwanthkumar.mrcube
 
-import com.twitter.scalding._
-import scala.collection.mutable
 import cascading.tuple.{Tuple, Fields}
 import cascading.pipe.{Each, Pipe}
 import cascading.operation.{FunctionCall, Function, BaseOperation}
 import cascading.flow.FlowProcess
-import com.twitter.scalding.Csv
+import scala.collection.JavaConversions.asScalaIterator
 
+/**
+ * Naive CubeOperations inspired from Apache Pig (https://issues.apache.org/jira/browse/PIG-2167)
+ */
 class CubeOperations(val pipe: Pipe) {
+  /**
+   * Produces a DataBag with all combinations of the argument tuple members
+   * as in a data cube. Meaning, (a, b, c) will produce the following bag:
+   * <pre>
+   * { (a, b, c), (null, null, null), (a, b, null), (a, null, c),
+   * (a, null, null), (null, b, c), (null, null, c), (null, b, null) }
+   * </pre>
+   *
+   * <p>
+   * The "all" marker is "null" by default, can be used changed with a
+   * different value as well.
+   * <p>
+   */
+  def cubify(fs: Fields, markerString: String = null): Pipe = {
+    new Each(pipe, fs, new CubifyFunction(fs, markerString), Fields.REPLACE)
+  }
 
-  def cubify[T](fs: Fields, markerString: String = null)(implicit conv: TupleConverter[T]): Pipe = {
-    conv.assertArityMatches(fs)
-    new Each(pipe, fs, new CubifyFunction[T](fs, markerString), Fields.REPLACE)
+  /**
+   * Produces a DataBag with hierarchy of values (from the most detailed level of
+   * aggregation to most general level of aggregation) of the specified dimensions
+   * For example, (a, b, c) will produce the following bag:
+   *
+   * <pre>
+   * { (a, b, c), (a, b, null), (a, null, null), (null, null, null) }
+   * </pre>
+   *
+   */
+  def rollup(fs: Fields, markerString: String = null): Pipe = {
+    new Each(pipe, fs, new RollupFunction(fs, markerString), Fields.REPLACE)
   }
 }
 
-class CubifyFunction[T](fields: Fields, marker: String = null)
+class CubifyFunction(fields: Fields, marker: String = null)
   extends BaseOperation[Any](fields) with Function[Any] {
 
   private[mrcube] def recursivelyCube(inputTuple: Tuple, newTuple: Tuple, fieldIndex: Int, outputTuples: List[Tuple]): List[Tuple] = {
@@ -41,5 +67,25 @@ class CubifyFunction[T](fields: Fields, marker: String = null)
     recursivelyCube(functionCall.getArguments.getTuple,
       functionCall.getArguments.getTupleCopy, 0, List()) map functionCall.getOutputCollector.add
   }
+}
+
+class RollupFunction(fields: Fields, marker: String = null)
+  extends BaseOperation[Any](fields) with Function[Any] {
+
+  private[mrcube] def iterativeRollup(inputTuple: Tuple) = {
+    var currentTuple = new Tuple(inputTuple)
+    inputTuple.iterator().zipWithIndex.foldLeft(List[Tuple]())((sofar, fieldWithIndex) => {
+      val (_, index) = fieldWithIndex
+      val inputCopy = new Tuple(currentTuple)
+      inputCopy.set(index, String.valueOf(marker))
+      currentTuple = inputCopy
+      inputCopy :: sofar
+    }) ++ List(inputTuple)
+  }
+
+  def operate(flowProcess: FlowProcess[_], functionCall: FunctionCall[Any]) {
+    iterativeRollup(functionCall.getArguments.getTuple) map functionCall.getOutputCollector.add
+  }
+
 }
 
