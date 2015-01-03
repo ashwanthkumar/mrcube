@@ -32,7 +32,7 @@ If the input tuple is  ``("ipod", "miami", "2012", "200000")`` the output genera
 
 Instead of "null" you can pass in another custom string to cubify.
 
-```
+```scala
 import in.ashwanthkumar.mrcube._
 
 class CubifyJob(args: Args) extends Job(args) {
@@ -58,7 +58,7 @@ If the input tuple is  ``("ipod", "miami", "2012", "200000")`` the output genera
 
 ("null", "null", "null", "1", "200000.0")
 
-```
+```scala
 import in.ashwanthkumar.mrcube._
 
 class RollupJob(args: Args) extends Job(args) {
