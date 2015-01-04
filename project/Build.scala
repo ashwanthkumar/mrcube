@@ -37,7 +37,8 @@ object Build extends Build {
       else
         Some("releases"  at nexus + "service/local/staging/deploy/maven2")
     },
-    pomExtra := _pomExtra
+    pomExtra := _pomExtra,
+    resolvers += "Conjars" at "http://conjars.org/repo"
   )
 
   val _pomExtra =
