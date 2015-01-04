@@ -75,7 +75,7 @@ class CubifyFunction(fields: Fields, marker: String = null)
 class RollupFunction(fields: Fields, marker: String = null)
   extends BaseOperation[Any](fields) with Function[Any] {
 
-  private[mrcube] def iterativeRollup(inputTuple: Tuple) = {
+  private[mrcube] def rollup(inputTuple: Tuple) = {
     var currentTuple = new Tuple(inputTuple)
     inputTuple.iterator().zipWithIndex.foldLeft(List[Tuple]())((sofar, fieldWithIndex) => {
       val (_, index) = fieldWithIndex
@@ -87,7 +87,7 @@ class RollupFunction(fields: Fields, marker: String = null)
   }
 
   def operate(flowProcess: FlowProcess[_], functionCall: FunctionCall[Any]) {
-    iterativeRollup(functionCall.getArguments.getTuple) map functionCall.getOutputCollector.add
+    rollup(functionCall.getArguments.getTuple) map functionCall.getOutputCollector.add
   }
 
 }
