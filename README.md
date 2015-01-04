@@ -57,7 +57,7 @@ class CubifyJob(args: Args) extends Job(args) {
   Csv(args("input"), fields = ('product, 'location, 'year, 'sales))
     .read
     .cubify(('product, 'location, 'year))
-    .groupBy('product, 'location, 'year) { _.size('size).sum('sales) }
+    .groupBy('product, 'location, 'year) { _.size('size).sum[Int]('sales) }
     .write(Csv(args("output")))
 }
 ```
@@ -83,7 +83,7 @@ class RollupJob(args: Args) extends Job(args) {
   Csv(args("input"), fields = ('product, 'location, 'year, 'sales))
     .read
     .rollup(('product, 'location, 'year))
-    .groupBy('product, 'location, 'year) { _.size('size).sum('sales) }
+    .groupBy('product, 'location, 'year) { _.size('size).sum[Int]('sales) }
     .write(Csv(args("output")))
 
 }
