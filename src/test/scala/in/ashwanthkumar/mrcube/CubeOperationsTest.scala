@@ -3,15 +3,14 @@ package in.ashwanthkumar.mrcube
 import com.twitter.scalding._
 import scala.collection.mutable
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
-import com.twitter.scalding.Csv
+import org.scalatest.Matchers
 
 class CubifyJob(args: Args) extends Job(args) {
 
   Csv(args("input"), fields = ('product, 'location, 'year, 'sales))
     .read
     .cubify(('product, 'location, 'year))
-    .groupBy('product, 'location, 'year) { _.size('size).sum('sales) }
+    .groupBy('product, 'location, 'year) { _.size('size).sum[Double]('sales) }
     .write(Csv(args("output")))
 }
 
@@ -19,12 +18,12 @@ class RollupJob(args: Args) extends Job(args) {
   Csv(args("input"), fields = ('product, 'location, 'year, 'sales))
     .read
     .rollup(('product, 'location, 'year))
-    .groupBy('product, 'location, 'year) { _.size('size).sum('sales) }
+    .groupBy('product, 'location, 'year) { _.size('size).sum[Double]('sales) }
     .write(Csv(args("output")))
 
 }
 
-class CubeOperationsTest extends FunSuite with TupleConversions with FieldConversions with ShouldMatchers {
+class CubeOperationsTest extends FunSuite with FieldConversions with Matchers {
 
   test("should emit all combinations for a tuple in cubify") {
 
