@@ -3,14 +3,17 @@ import sbt._
 
 object Build extends Build {
 
-  val AppVersion = "0.0.1-SNAPSHOT"
+  /*
+    Always equal to the version of the scalding used.
+   */
+  val AppVersion = "0.12.0"
   val ScalaVersion = "2.10.4"
 
   lazy val main = Project("mrcube", file("."), settings = defaultSettings)
     .settings(organization := "in.ashwanthkumar",
       version := AppVersion,
       libraryDependencies ++= Seq(
-        "com.twitter" %% "scalding-core" % "0.12.0" % "provided",
+        "com.twitter" %% "scalding-core" % AppVersion % "provided",
         "org.apache.hadoop" % "hadoop-core" % "1.2.1" % "provided",
         "org.scalatest" %% "scalatest" % "2.2.0" % "test"
       )
