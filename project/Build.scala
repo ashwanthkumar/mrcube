@@ -1,5 +1,7 @@
 import sbt.Keys._
 import sbt._
+import xerial.sbt.Sonatype.SonatypeKeys
+import SonatypeKeys._
 
 object Build extends Build {
 
@@ -17,7 +19,7 @@ object Build extends Build {
         "org.apache.hadoop" % "hadoop-core" % "1.2.1" % "provided",
         "org.scalatest" %% "scalatest" % "2.2.0" % "test"
       )
-  )
+  ).settings(xerial.sbt.Sonatype.sonatypeSettings: _*)
 
   lazy val defaultSettings = super.settings ++ Seq(
     fork in run := false,
