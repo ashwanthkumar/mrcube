@@ -9,7 +9,7 @@ import scala.collection.JavaConversions.asScalaIterator
 /**
  * Naive CubeOperations inspired from Apache Pig (https://issues.apache.org/jira/browse/PIG-2167)
  */
-class CubeOperations(val pipe: Pipe) {
+class CubeOperations(pipe: Pipe) {
   /**
    * Produces a DataBag with all combinations of the argument tuple members
    * as in a data cube. Meaning, (a, b, c) will produce the following bag:
@@ -63,9 +63,12 @@ class CubifyFunction(fields: Fields, marker: String = null)
     newOutput
   }
 
+  private[mrcube] def cubify(input: Tuple) = {
+    recursivelyCube(input, new Tuple(input), 0, List())
+  }
+
   def operate(flowProcess: FlowProcess[_], functionCall: FunctionCall[Any]) {
-    recursivelyCube(functionCall.getArguments.getTuple,
-      functionCall.getArguments.getTupleCopy, 0, List()) map functionCall.getOutputCollector.add
+    cubify(functionCall.getArguments.getTuple) map functionCall.getOutputCollector.add
   }
 }
 
